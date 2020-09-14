@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+    <link rel="stylesheet" href="./layui/css/layui.css">
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">后台管理</div>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                    <span id="username"></span>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <dd><a href="">安全设置</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="">注销</a></li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test" id="left_menu">
+                <!--由脚本进行菜单数据填充-->
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;" id="main">内容主体区域</div>
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        © layui.com - 底部固定区域
+    </div>
+</div>
+<script src="./layui/layui.js"></script>
+<script src="js/jquery-1.8.2.js"></script>
+<script>
+    $(function(){
+        layui.use('element', function(){
+            let element = layui.element;
+
+            //用来存放列表项的代码
+            let str = "";
+
+            /*发送异步请求到后端，返回当前用户能看见的菜单list*/
+            $.ajax({
+                url:'/menu/usermenus',
+                type: 'get',
+                method: 'GET',
+                success: function (result) {
+                    /*接收后端返回的处理好的MenuList，再对菜单侧边栏进行填充*/
+                    if(result.data!=null){
+                        // console.log(result.data);
+                        $.each(result.data,function (index,menu) {
+                            str+='<li class="layui-nav-item layui-nav-itemed">';
+
+                            if(menu.type===1){
+                                str += `<a class="layui-nav-item" href="javascript:" onclick="toRight('${menu.url}')">${menu.name}</a>`;
+                            }else {
+                                str += `<a class="layui-nav-item" href="javascript:">${menu.name}</a>`;
+                            }
+                            if(menu.childrenMenuList.length>0){
+                                //填充子菜单
+                                childrenMenuRender(menu.childrenMenuList);
+                            }
+                            str += '</li>';
+                        });
+                        $("#left_menu").html(str);
+                        element.render();
+                    }
+
+                    /*子菜单的填充*/
+                    function childrenMenuRender(childMenu) {
+                        str+="<dl class='layui-nav-child'>";
+                        $.each(childMenu,function (index,menu) {
+                            str+='<dd>';
+                            if(menu.type===1){
+                                str += `<a class="" href="javascript:" onclick="toRight('${menu.url}')">${menu.name}</a>`;
+                            }else {
+                                str += `<a class="" href="javascript:">${menu.name}</a>`;
+                            }
+                            //如果还有子菜单，则继续添加
+                            if(menu.childrenMenuList.length>0){
+                                childrenMenuRender(menu.childrenMenuList);
+                            }
+                            str += '</dd>';
+                        })
+                        str+='</dl>';
+                    }
+                }
+            })
+        });
+
+        $.get("/adminUser/getName",function (result) {
+            $("#username").html(result.data);
+        })
+    });
+
+
+
+    function toRight(url) {
+        $("#main").load(url);
+    }
+
+</script>
+</body>
+</html>

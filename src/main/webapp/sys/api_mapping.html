@@ -1,0 +1,327 @@
+<form action="#" class="layui-form" >
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label>名称:</label>
+            <div class="layui-inline">
+                <input type="text" name="name1" id="name1" autocomplete="off" placeholder="请输入名称"
+                       class="layui-input">
+            </div>
+            状态:
+            <div class="layui-inline">
+                <label>
+                    <select name="state1" id="state1">
+                        <option value="">请选择</option>
+                        <option value="0">无效</option>
+                        <option value="1">有效</option>
+                    </select>
+                </label>
+            </div>
+            <button class="layui-btn" lay-submit lay-filter="route-table" id="search">搜索</button>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="route-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete"><i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="route-route-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-route">编辑</a>
+</script>
+<table class="layui-table" lay-filter="route-table" id="route-table">
+</table>
+
+<script type="text/javascript">
+
+    $(function() {
+        render();
+        search();
+    });
+
+    /*表格渲染*/
+    function render() {
+        layui.use(['table','form','layer'], function (obj) {
+            let table = layui.table;
+            let layer = layui.layer;
+            let form = layui.form;
+
+            form.render();
+            /*路由表的渲染*/
+            table.render({
+                elem: '#route-table'
+                , toolbar:'#route-head-bar'
+                , height: 555
+                , url: '/route/table' //数据接口
+                , page: {'limits':[5,10,15,20,25]} //开启分页
+                , cols: [[ //表头
+                    {checkbox: true}
+                    , {field: 'id', title: 'ID', width: 80}
+                    , {field: 'gatewayApiName', title: '名称', width: 177}
+                    , {field: 'insideApiUrl', title: 'URL', width: 177}
+                    , {field: 'serviceId', title: 'serviceId', width: 160}
+                    , {field: 'description', title: '描述', width: 177}
+                    , {field: 'state', title: '状态', width: 80, templet:function (data) {
+                            return (data.state===1)?'<span class="layui-badge layui-bg-green">有效</span>':
+                                '<span class="layui-badge layui-bg-red">无效</span>';
+                            }
+                      }
+                    ,{field: 'idempotents', title: '幂等性', width: 80, templet:function (data) {
+                            return (data.idempotents===1)?'<span class="layui-badge layui-bg-green">幂等</span>':
+                                '<span class="layui-badge layui-bg-red">非幂等</span>';
+                        }
+                    }
+                    ,{field: 'needfee', title: '是否收费', width: 100, templet:function (data) {
+                            return (data.needfee===1)?'<span class="layui-badge layui-bg-green">收费</span>':
+                                '<span class="layui-badge layui-bg-red">免费</span>';
+                        }
+                    }
+                    , {field: 'right', title: '操作' ,width: '130' ,toolbar:'#route-route-bar'}
+                ]]
+            });
+
+            /*  监听头工具栏事件
+              * 语法：table.on('event(filter)', callback);
+              * 注：event为内置事件名，filter为容器lay-filter设定的值。
+              * table模块在Layui事件机制中注册了专属事件，如果你使用layui.onevent()自定义模块事件，请勿占用table名。
+            */
+            table.on("toolbar(route-table)",function (obj) {
+                // obj为toolbar单击事件的event名称
+                // console.log(obj)
+                switch (obj.event) {
+                    /*编辑信息*/
+                    case 'goEdit':
+                        //添加路由窗口弹出
+                        showEditWindow(null);
+                        break;
+                    /*删除记录*/
+                    case 'delete':
+                        let checkStatus = table.checkStatus("route-table").data;
+                        if (checkStatus.length>0){
+                            layer.confirm('真的删除行么', function(index) {
+                                /*删除对应行（tr）的DOM结构，并更新缓存*/
+                                let params = "";//存要删除的行标
+
+                                /*将行标循环添加进参数里*/
+                                $.each(checkStatus,function (index,object) {
+                                    params += "&ids="+object.id;
+                                })
+                                let params1 = params.slice(1,params.length)
+
+                                //向服务端发送删除指令
+                                $.post("/route/delete",params1,function (data) {
+                                    if (data.status){
+                                        table.reload('route-table',{});
+                                    }else {
+                                        alert(data.message)
+                                    }
+                                });
+                                layer.close(index)
+                            });
+                        }
+                        break;
+                    case 'edit-route':
+                        break;
+                }
+            });
+
+            /*监听行工具事件
+            * 这里的obj为行对象
+            * obj.data为行内的数据*/
+            table.on("tool(route-table)",function (obj) {
+                console.log(obj.data);
+                switch (obj.event) {
+                    case 'edit-route':
+                        showEditWindow(obj.data);
+                        break;
+                }
+            });
+
+            /*添加和修改操作*/
+            function showEditWindow(data) {
+                layer.open({
+                    type:1,
+                    title:"编辑路由数据",
+                    area:['500px', '350px'],
+                    content:data===null?$("#route-add-layer").html():$("#route-edit-layer").html(),
+                    btn:['提交','取消'],
+                    yes:function (index,layero) {
+                        /*请求后台做更新或添加操作*/
+                        $.ajax({
+                            type:"post",
+                            url:"/route/"+(data===null?'add':'update'),
+                            data:data===null?$("#route-add-form").serialize():$("#route-edit-form").serialize(),
+                            success:function (data) {
+                                /*后端成功后的操作*/
+                                if(data.status){
+                                    //更新成功,刷新表格
+                                    table.reload("route-table",{});
+                                    //关闭弹出框
+                                    layer.close(index);
+                                }else {
+                                    //提示信息
+                                    alert(data.message);
+                                }
+                                layer.closeAll("loading")
+                            }
+                        })
+                    },
+                    /*层弹出成功后的回调函数*/
+                    success:function (layero,index) {
+                        console.log(data)
+                        //刷新form表单
+                        form.render();
+                        if (data!=null){
+                            form.val("route-edit-form",data)
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    /*按条件搜索*/
+    function search() {
+        $("#search").click(function () {
+            /*获取搜索的条件：用户名和密码*/
+            let name = $("#name1").val();
+            let state = $("#state1").val();
+
+            /*查询对应结果并渲染table*/
+            layui.use(['table'], function (obj) {
+                let table = layui.table;
+
+                table.reload('route-table',{
+                    url:'/route/search',
+                    where:{
+                        name:name,
+                        state:state
+                    },
+                })
+            });
+            return false;
+        })
+    }
+</script>
+
+<script type="text/html" id="route-edit-layer">
+    <form id="route-edit-form" style="width: 80%" class="layui-form" lay-filter="route-edit-form">
+        <input type="hidden" name="id" value="0">
+        <div class="layui-form-item">
+            <label class="layui-form-label">对外接口名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="gatewayApiName" required lay-verify="required" placeholder="请输入对外接口名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">对内的接口URL</label>
+            <div class="layui-input-block">
+                <input type="text" name="insideApiUrl" required lay-verify="required" placeholder="请输入对内的接口URL"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">服务名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="serviceId" required lay-verify="required" placeholder="请输入服务名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述</label>
+            <div class="layui-input-block">
+                <input type="text" name="description" required lay-verify="required" placeholder="请输入描述"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="state" title="有效" value="1" checked/>
+                <input type="radio" name="state" title="无效" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">幂等性</label>
+            <div class="layui-input-block">
+                <input type="radio" name="idempotents" title="幂等" value="1" checked/>
+                <input type="radio" name="idempotents" title="非幂等" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否收费</label>
+            <div class="layui-input-block">
+                <input type="radio" name="needfee" title="收费" value="1" checked/>
+                <input type="radio" name="needfee" title="免费" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>
+
+
+<script type="text/html" id="route-add-layer">
+    <form id="route-add-form" style="width: 80%" class="layui-form" lay-filter="route-edit-form">
+        <input type="hidden" name="id" value="0">
+        <div class="layui-form-item">
+            <label class="layui-form-label">对外接口名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="gatewayApiName" required lay-verify="required" placeholder="请输入对外接口名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">对内的接口URL</label>
+            <div class="layui-input-block">
+                <input type="text" name="insideApiUrl" required lay-verify="required" placeholder="请输入对内的接口URL"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">服务名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="serviceId" required lay-verify="required" placeholder="请输入服务名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述</label>
+            <div class="layui-input-block">
+                <input type="text" name="description" required lay-verify="required" placeholder="请输入描述"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="state" title="有效" value="1" checked/>
+                <input type="radio" name="state" title="无效" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">幂等性</label>
+            <div class="layui-input-block">
+                <input type="radio" name="idempotents" title="幂等" value="1" checked/>
+                <input type="radio" name="idempotents" title="非幂等" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否收费</label>
+            <div class="layui-input-block">
+                <input type="radio" name="needfee" title="收费" value="1" checked/>
+                <input type="radio" name="needfee" title="免费" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>

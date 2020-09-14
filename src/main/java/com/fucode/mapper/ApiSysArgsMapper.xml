@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fucode.mapper.ApiSysArgsMapper">
+    <select id="getArgs" resultType="com.fucode.pojo.ApiSystemparam">
+        select * from openapi.api_systemparam
+    </select>
+
+    <insert id="addNew">
+        insert into openapi.api_systemparam values (null,
+                                                    #{name},
+                                                    #{description},
+                                                    #{state}
+                                                   )
+    </insert>
+    <update id="updateArgs">
+        update openapi.api_systemparam set
+        <trim suffixOverrides=",">
+            <if test="name!=null and name!=''">
+                name = #{name},
+            </if>
+            <if test="description!=null and description!=''">
+                description = #{description},
+            </if>
+            <if test="state!=null">
+                state=#{state},
+            </if>
+        </trim>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+    <delete id="deleteArgs">
+        delete from openapi.api_systemparam where id in
+        <foreach collection="array" open="(" close=")" item="ids">
+            #{ids}
+        </foreach>
+    </delete>
+
+    <select id="searchArgs" resultType="com.fucode.pojo.ApiSystemparam">
+        select * from openapi.api_systemparam
+        <where>
+            <if test="state!=null">
+                and state like concat('%',#{state},'%')
+            </if>
+            <if test="name!=null and name!=''">
+                and name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

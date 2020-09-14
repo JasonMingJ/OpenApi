@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fucode.mapper.AppInfoMapper">
+
+
+    <insert id="insertAppInfo">
+        insert into openapi.appinfo values (null,
+                                            #{corpName},
+                                            #{appName},
+                                            #{appKey},
+                                            #{appSecret},
+                                            #{redirectUrl},
+                                            #{limitt},
+                                            #{description},
+                                            #{cusId},
+                                            #{state})
+    </insert>
+    <update id="updateAppInfo">
+        update openapi.appinfo set
+        <trim suffixOverrides=",">
+            <if test="corpName!=null and corpName!=''">
+                corpName = #{corpName},
+            </if>
+            <if test="appName!=null and appName!=''">
+                appName = #{appName},
+            </if>
+            <if test="appKey!=null and appKey!=''">
+                appKey = #{appKey},
+            </if>
+            <if test="appSecret!=null and appSecret!=''">
+                appSecret = #{appSecret},
+            </if>
+            <if test="redirectUrl!=null and redirectUrl!=''">
+                redirectUrl = #{redirectUrl},
+            </if>
+            <if test="limitt!=null and limitt!=''">
+                limitt = #{limitt},
+            </if>
+            <if test="description!=null and description!=''">
+                description = #{description},
+            </if>
+            <if test="cusId!=null and cusId!=''">
+                cusId = #{cusId},
+            </if>
+            <if test="state!=null and state!=''">
+                state = #{state},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+    <delete id="deleteAppInfo">
+        delete from openapi.appinfo where id = #{id};
+    </delete>
+
+    <delete id="deleteAppInfoByIds">
+        delete from openapi.appinfo where id in
+        <foreach collection="array" open="(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getAppInfoById" resultType="com.fucode.pojo.AppInfo">
+        select *
+        from openapi.appinfo
+        <where>
+            <if test="id!=null and id!=''">
+                id = #{id}
+            </if>
+        </where>
+    </select>
+    <select id="getAllAppinfo" resultType="com.fucode.pojo.AppInfo">
+        select *
+        from openapi.appinfo
+    </select>
+
+
+
+</mapper>

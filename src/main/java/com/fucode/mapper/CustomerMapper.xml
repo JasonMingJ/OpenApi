@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fucode.mapper.CustomerMapper">
+
+
+    <insert id="insertCustomer" parameterType="com.fucode.pojo.Customer"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into openapi.customer values (null,
+                                             #{username},
+                                             #{password},
+                                             #{nickname},
+                                             #{money},
+                                             #{address},
+                                             #{state})
+    </insert>
+    <update id="updateCustomer">
+        update openapi.customer set
+            <trim suffixOverrides=",">
+            <if test="username!=null and username !=''">
+                username=#{username},
+            </if>
+            <if test="password!=null and password!=''">
+                password=#{password},
+            </if>
+            <if test="nickname!=null and nickname!=''">
+                nickname=#{nickname},
+            </if>
+            <if test="money!=null and money!=''">
+                money=#{money},
+            </if>
+            <if test="address!=null and address!=''">
+                address=#{address},
+            </if>
+            <if test="state!=null">
+            state=#{state},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+    <delete id="deleteCustomer">
+        delete from openapi.customer where id in
+        <foreach collection="array" open="(" close=")" separator="," item="ids">
+            #{ids}
+        </foreach>
+    </delete>
+    <select id="getCustomerById" resultType="com.fucode.pojo.Customer">
+        select *
+        from openapi.customer where id = #{id};
+    </select>
+    <select id="getAllCustomers" resultType="com.fucode.pojo.Customer">
+        select * from openapi.customer
+    </select>
+    <select id="getCustomerByCondition" resultType="com.fucode.pojo.Customer">
+        select * from openapi.customer
+        <where>
+                <if test="username!=null and username!=''">
+                    and username like concat('%',#{username},'%')
+                </if>
+                <if test="status!=null and status!=''">
+                    and state like concat('%',#{status},'%')
+                </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,234 @@
+<form action="#" class="layui-form" >
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label>名称:</label>
+            <div class="layui-inline">
+                <input type="text" name="name1" id="name1" autocomplete="off" placeholder="请输入名称"
+                       class="layui-input">
+            </div>
+            状态:
+            <div class="layui-inline">
+                <label>
+                    <select name="state1" id="state1">
+                        <option value="">请选择</option>
+                        <option value="0">无效</option>
+                        <option value="1">有效</option>
+                    </select>
+                </label>
+            </div>
+            <button class="layui-btn" lay-submit lay-filter="token-table" id="search">搜索</button>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="token-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete"><i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="token-token-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-token">编辑</a>
+</script>
+<table class="layui-table" lay-filter="token-table" id="token-table">
+</table>
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript">
+
+    $(function() {
+        render();
+        search();
+    });
+
+    /*表格渲染*/
+    function render() {
+        layui.use(['table','form','layer'], function (obj) {
+            let table = layui.table;
+            let layer = layui.layer;
+            let form = layui.form;
+
+            form.render();
+            /*路由表的渲染*/
+            table.render({
+                elem: '#token-table'
+                , toolbar:'#token-head-bar'
+                , height: 555
+                , url: '/token/table' //数据接口
+                , page: {'limits':[5,10,15,20,25]} //开启分页
+                , cols: [[ //表头
+                    {checkbox: true}
+                    , {field: 'id', title: 'ID', width: 80}
+                    , {field: 'userId', title: '用户ID', width: 80}
+                    , {field: 'accessToken', title: 'Token内容', width: 388}
+                    , {field: 'expireTime', title: '过期时间', width: 177, templet: function (data) {
+                            return getMyDate(data.expireTime);
+                        }}
+                    , {field: 'startTime', title: '生效时间', width: 177,templet: function (data) {
+                            return getMyDate(data.startTime);
+                        }}
+                    , {field: 'state', title: '状态', width: 80, templet:function (data) {
+                            return (data.state===1)?'<span class="layui-badge layui-bg-green">有效</span>':
+                                '<span class="layui-badge layui-bg-red">无效</span>';
+                        }
+                    }
+                    , {field: 'right', title: '操作' ,width: '130' ,toolbar:'#token-token-bar'}
+                ]]
+            });
+
+            /*  监听头工具栏事件
+              * 语法：table.on('event(filter)', callback);
+              * 注：event为内置事件名，filter为容器lay-filter设定的值。
+              * table模块在Layui事件机制中注册了专属事件，如果你使用layui.onevent()自定义模块事件，请勿占用table名。
+            */
+            table.on("toolbar(token-table)",function (obj) {
+                // obj为toolbar单击事件的event名称
+                // console.log(obj)
+                switch (obj.event) {
+                    /*删除记录*/
+                    case 'delete':
+                        //获取被选中的行的data集合
+                        let checkStatus = table.checkStatus("token-table").data;
+                        if (checkStatus.length>0){
+                            layer.confirm('真的删除行么', function(index) {
+                                /*删除对应行（tr）的DOM结构，并更新缓存*/
+                                let params = "";//存要删除的行标
+
+                                /*将行标循环添加进参数里*/
+                                $.each(checkStatus,function (index,object) {
+                                    params += "&ids="+object.id;
+                                })
+                                let params1 = params.slice(1,params.length)
+
+                                //向服务端发送删除指令
+                                $.post("/token/delete",params1,function (data) {
+                                    if (data.status){
+                                        table.reload('token-table',{});
+                                    }else {
+                                        alert(data.message)
+                                    }
+                                });
+                                layer.close(index)
+                            });
+                        }
+                        break;
+                    case 'edit-token':
+                        break;
+                }
+            });
+
+            /*监听行工具事件
+            * 这里的obj为行对象
+            * obj.data为行内的数据*/
+            table.on("tool(token-table)",function (obj) {
+                // console.log(obj.data);
+                switch (obj.event) {
+                    case 'edit-token':
+                        showEditWindow(obj.data);
+                        break;
+                }
+            });
+
+            /*添加和修改操作*/
+            function showEditWindow(data) {
+                let data2={};
+                layer.open({
+                    type:1,
+                    title:"编辑路由数据",
+                    area:['500px', '350px'],
+                    content:$("#token-edit-layer").html(),
+                    btn:['提交','取消'],
+                    /*点击提交后的回调函数*/
+                    yes:function (index,layero) {
+                        /*请求后台做更新或添加操作*/
+                        $("#token-edit-form").serializeArray().map(function (x) {
+                            data2[x.name] = x.value;
+                        });
+                        $.ajax({
+                            type:"post",
+                            url:"/token/update",
+                            data:JSON.stringify(data2),
+                            contentType:"application/json",
+                            success:function (data) {
+                                /*后端成功后的操作*/
+                                if(data.status){
+                                    //更新成功,刷新表格
+                                    table.reload("token-table",{});
+                                    //关闭弹出框
+                                    layer.close(index);
+                                }else {
+                                    //提示信息
+                                    alert(data.message);
+                                }
+                                layer.closeAll("loading")
+                            }
+                        })
+                    },
+                    /*层弹出成功后的回调函数*/
+                    success:function (layero,index) {
+                        // console.log(data);
+                        //刷新form表单
+                        if (data!=null){
+                            form.val("token-edit-form",{
+                                "id":data.id,
+                                "accessToken":data.accessToken,
+                                "userId":data.userId,
+                                "startTime": (getMyDate2(data.startTime)),
+                                "expireTime": (getMyDate2(data.expireTime))
+                            });
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    /*按条件搜索*/
+    function search() {
+        $("#search").click(function () {
+            /*获取搜索的条件：用户名和密码*/
+            let name = $("#name1").val();
+            let state = $("#state1").val();
+
+            /*查询对应结果并渲染table*/
+            layui.use(['table'], function (obj) {
+                let table = layui.table;
+
+                table.reload('token-table',{
+                    url:'/token/search',
+                    where:{
+                        name:name,
+                        state:state
+                    },
+                })
+            });
+            return false;
+        })
+    }
+</script>
+
+<script type="text/html" id="token-edit-layer">
+    <form id="token-edit-form" style="width: 80%" class="layui-form" lay-filter="token-edit-form">
+        <input type="hidden" name="id">
+        <input type="hidden" name="accessToken">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="userId" lay-filter="userId" required lay-verify="required" placeholder="请选择用户"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" >
+            <label class="layui-form-label">起效日期</label>
+            <div class="layui-input-block">
+                <input type="date" class="layui-input" lay-filter="startTime" name="startTime" placeholder="请输入起效日期"/>
+            </div>
+        </div>
+        <div class="layui-form-item" >
+            <label class="layui-form-label">失效日期</label>
+            <div class="layui-input-block">
+                <input type="date" class="layui-input" lay-filter="expireTime" name="expireTime" placeholder="请输入失效日期"/>
+            </div>
+        </div>
+
+    </form>
+</script>

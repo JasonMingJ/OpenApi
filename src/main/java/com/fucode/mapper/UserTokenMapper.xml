@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fucode.mapper.UserTokenMapper">
+    <insert id="add">
+        insert into openapi.user_token values (null,
+                                               userId=#{userID},
+                                               accessToken=#{accessToken},
+                                               expireTime=#{expireTime},
+                                               startTime=#{startTime}
+                                              )
+    </insert>
+    <update id="update">
+        update openapi.user_token set
+        <trim suffixOverrides=",">
+            <if test="userId!=null and userId!=''">
+                userId=#{userId},
+            </if>
+            <if test="accessToken!=null">
+                accessToken=#{accessToken},
+            </if>
+            <if test="expireTime!=null">
+                expireTime=#{expireTime},
+            </if>
+            <if test="startTime!=null">
+                startTime=#{startTime},
+            </if>
+        </trim>
+            where id = #{id}
+    </update>
+    <delete id="delete">
+        delete from openapi.user_token where id in
+        <foreach collection="array" open="(" close=")" separator="," item="ids">
+            #{ids}
+        </foreach>
+    </delete>
+
+    <select id="getAll" resultType="com.fucode.pojo.UserToken">
+        select * from openapi.user_token
+    </select>
+    <select id="search" resultType="com.fucode.pojo.UserToken">
+        select *
+        from openapi.user_token
+        <where>
+            <if test="state!=null">
+                state=#{state}
+            </if>
+        </where>
+    </select>
+</mapper>
