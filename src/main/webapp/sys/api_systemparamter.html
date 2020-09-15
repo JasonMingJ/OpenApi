@@ -53,7 +53,7 @@
                 elem: '#args-table'
                 , toolbar:'#args-head-bar'
                 , height: 555
-                , url: '/args/table' //数据接口
+                , url: 'args/table' //数据接口
                 , page: {'limits':[5,10,15,20,25]} //开启分页
                 , cols: [[ //表头
                     {checkbox: true}
@@ -99,7 +99,7 @@
                                 let params1 = params.slice(1,params.length)
 
                                 //向服务端发送删除指令
-                                $.post("/args/delete",params1,function (data) {
+                                $.post("args/delete",params1,function (data) {
                                     if (data.status){
                                         table.reload('args-table',{});
                                     }else {
@@ -139,7 +139,7 @@
                         /*请求后台做更新或添加操作*/
                         $.ajax({
                             type:"post",
-                            url:"/args/"+(data===null?'add':'update'),
+                            url:"args/"+(data===null?'add':'update'),
                             data:data===null?$("#args-add-form").serialize():$("#args-edit-form").serialize(),
                             success:function (data) {
                                 /*后端成功后的操作*/
@@ -182,7 +182,7 @@
                 let table = layui.table;
 
                 table.reload('args-table',{
-                    url:'/args/search',
+                    url:'openapi/args/search',
                     where:{
                         name:name,
                         state:state

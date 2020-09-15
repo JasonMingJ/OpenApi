@@ -53,7 +53,7 @@
                 elem: '#customer-table'
                 , toolbar:'#customer-head-bar'
                 , height: 555
-                , url: '/customer/table' //数据接口
+                , url: 'customer/table' //数据接口
                 , page: {'limits':[5,10,15,20,25]} //开启分页
                 , cols: [[ //表头
                     {checkbox: true}
@@ -96,7 +96,7 @@
                                 let params1 = params.slice(1,params.length)
 
                                 //向服务端发送删除指令
-                                $.post("/customer/delete",params1,function (data) {
+                                $.post("customer/delete",params1,function (data) {
                                     if (data.status){
                                         table.reload('customer-table',{});
                                     }else {
@@ -136,7 +136,7 @@
                         /*请求后台做更新或添加操作*/
                         $.ajax({
                             type:"post",
-                            url:"/customer/"+(data===null?'add':'update'),
+                            url:"customer/"+(data===null?'add':'update'),
                             data:data===null?$("#customer-add-form").serialize():$("#customer-edit-form").serialize(),
                             success:function (data) {
                                 /*后端成功后的操作*/
@@ -184,7 +184,7 @@
                 // form.render();
                 // table.render();
                 table.reload('customer-table',{
-                    url:'/customer/search',
+                    url:'customer/search',
                     where:{
                         name:username,
                         state:state

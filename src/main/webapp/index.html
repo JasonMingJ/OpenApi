@@ -12,7 +12,7 @@
         <ul class="layui-nav layui-layout-right">
             <li class="layui-nav-item">
                 <a href="javascript:;">
-                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                    <img src="https://t.cn/RCzsdCq" class="layui-nav-img">
                     <span id="username"></span>
                 </a>
                 <dl class="layui-nav-child">
@@ -54,7 +54,7 @@
 
             /*发送异步请求到后端，返回当前用户能看见的菜单list*/
             $.ajax({
-                url:'/menu/usermenus',
+                url:'menu/usermenus',
                 type: 'get',
                 method: 'GET',
                 success: function (result) {
@@ -101,7 +101,7 @@
             })
         });
 
-        $.get("/adminUser/getName",function (result) {
+        $.get("adminUser/getName",function (result) {
             $("#username").html(result.data);
         })
     });

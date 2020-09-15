@@ -51,7 +51,7 @@
                 ,toolbar: '#app-head-bar'
                 ,height: 555
                 ,page:{'limits':[3,5,10,15]}
-                ,url: '/app/getApps/' //数据接口
+                ,url: 'app/getApps/' //数据接口
                 ,cols: [[ //表头
                      {checkbox:true}
                     ,{field: 'id', title: '编号', sort: true},
@@ -93,7 +93,7 @@
 
                                 /*请求服务器删除数据*/
                                 $.ajax({
-                                    url:'/app/delApps',
+                                    url:'app/delApps',
                                     data: params1,
                                     type: 'post',
                                     success: function (data) {
@@ -134,7 +134,7 @@
                         /*请求后端添加或修改app信息*/
                         $.ajax({
                             type:"post",
-                            url: "/app/"+ (data===null?'addApp':'updateApp'),
+                            url: "app/"+ (data===null?'addApp':'updateApp'),
                             data: $("#app-edit-form").serialize(),
                             method: "POST",
                             success: function (data) {
@@ -169,7 +169,7 @@
                         }
                         /*发送异步请求，请求客户集合，供以添加app时选择*/
                         $.ajax({
-                            url:"/customer/getcus",
+                            url:"customer/getcus",
                             type:"get",
                             success:function (res) {
                                 for(let i=0;i<res.length;i++){

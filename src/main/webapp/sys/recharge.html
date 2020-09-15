@@ -32,7 +32,7 @@
 </script>
 <table class="layui-table" lay-filter="recharge-table" id="recharge-table">
 </table>
-<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript" src="./js/common.js"></script>
 <script type="text/javascript">
 
     $(function() {
@@ -53,7 +53,7 @@
                 elem: '#recharge-table'
                 , toolbar:'#recharge-head-bar'
                 , height: 555
-                , url: '/recharge/table' //数据接口
+                , url: 'recharge/table/' //数据接口
                 , page: {'limits':[5,10,15,20,25]} //开启分页
                 , cols: [[ //表头
                     {checkbox: true}
@@ -110,7 +110,7 @@
                                 let params1 = params.slice(1,params.length)
 
                                 //向服务端发送删除指令
-                                $.post("/recharge/delete",params1,function (data) {
+                                $.post("recharge/delete",params1,function (data) {
                                     if (data.status){
                                         table.reload('recharge-table',{});
                                     }else {
@@ -150,7 +150,7 @@
                         /*请求后台做更新或添加操作*/
                         $.ajax({
                             type:"post",
-                            url:"/recharge/"+(data===null?'add':'update'),
+                            url:"recharge/"+(data===null?'add':'update'),
                             data:data===null?$("#recharge-add-form").serialize():$("#recharge-edit-form").serialize(),
                             success:function (data) {
                                 /*后端成功后的操作*/
@@ -195,7 +195,7 @@
                 let table = layui.table;
 
                 table.reload('recharge-table',{
-                    url:'/recharge/search',
+                    url:'recharge/search',
                     where:{
                         name:name,
                         state:state
