@@ -21,10 +21,10 @@
             <if test="orderId!=null and orderId!=''">
                 orderId = #{orderId},
             </if>
-            <if test="createtime!=null and createtime!=''">
+            <if test="createtime!=null">
                 createtime = #{createtime},
             </if>
-            <if test="updatetime!=null and updatetime!=''">
+            <if test="updatetime!=null">
                 updatetime = #{updatetime},
             </if>
             <if test="money!=null and money!=''">
@@ -37,6 +37,9 @@
                 paymenttype = #{paymenttype},
             </if>
         </trim>
+        <where>
+            id = #{id}
+        </where>
     </update>
     <delete id="delete">
         delete from openapi.recharge where id in

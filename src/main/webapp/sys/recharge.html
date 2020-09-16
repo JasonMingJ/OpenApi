@@ -140,6 +140,7 @@
 
             /*添加和修改操作*/
             function showEditWindow(data) {
+                let data3={};
                 layer.open({
                     type:1,
                     title:"编辑数据",
@@ -148,10 +149,14 @@
                     btn:['提交','取消'],
                     yes:function (index,layero) {
                         /*请求后台做更新或添加操作*/
+                        $("#recharge-edit-form").serializeArray().map(function (x) {
+                                data3[x.name] = x.value;
+                            })
                         $.ajax({
                             type:"post",
                             url:"recharge/"+(data===null?'add':'update'),
-                            data:data===null?$("#recharge-add-form").serialize():$("#recharge-edit-form").serialize(),
+                            data:data===null?$("#recharge-add-form").serialize():JSON.stringify(data3),
+                            contentType:"application/json",
                             success:function (data) {
                                 /*后端成功后的操作*/
                                 if(data.status){
@@ -169,11 +174,20 @@
                     },
                     /*层弹出成功后的回调函数*/
                     success:function (layero,index) {
-                        // console.log(data)
+                        console.log(data)
                         //刷新form表单
                         // form.render();
                         if (data!=null){
-                            form.val("recharge-edit-form",data)
+                            form.val("recharge-edit-form",{
+                                "id":data.id,
+                                "cusId":data.cusId,
+                                "orderId":data.orderId,
+                                "createtime":getMyDate(data.createtime),
+                                "updatetime":getMyDate(data.updatetime),
+                                "money":data.money,
+                                "state":data.state,
+                                "paymenttype":data.paymenttype
+                            })
                         }else{
                             getNames(form,"#cusId1");
                         }
@@ -247,6 +261,8 @@
                 <input type="radio" name="state" title="未支付" value="0"/>
             </div>
         </div>
+        <input hidden name="createtime">
+        <input hidden name="updatetime">
     </form>
 </script>
 

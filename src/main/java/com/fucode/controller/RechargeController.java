@@ -48,10 +48,10 @@ public class RechargeController {
         }
     }
 
-    @PostMapping("/update")
-    public AjaxResponse updateRecharge(Recharge recharge){
+    @RequestMapping("/update")
+    public AjaxResponse updateRecharge(@RequestBody Recharge recharge){
         try {
-            recharge.setUpdatetime(DateUtils.utilDateTosqlDate(new Date()));
+            recharge.setUpdatetime(new Date());
             rechargeServices.updateRecharge(recharge);
             return new AjaxResponse(true,"修改成功");
         }catch (Exception e){

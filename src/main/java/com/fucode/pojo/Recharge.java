@@ -1,5 +1,7 @@
 package com.fucode.pojo;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.util.Date;
 
 public class Recharge {
@@ -7,7 +9,9 @@ public class Recharge {
   private long id;
   private long cusId;
   private long orderId;
+  @JSONField(format = "yyyy-MM-dd")
   private Date createtime;
+  @JSONField(format = "yyyy-MM-dd")
   private Date updatetime;
   private long money;
   private long state;
